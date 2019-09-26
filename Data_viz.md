@@ -145,3 +145,93 @@ weather_df %>%
 ```
 
 ![](Data_viz_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+2D density
+
+``` r
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_bin2d() #instal hexbin to use geom_hex()
+```
+
+    ## Warning: Removed 15 rows containing non-finite values (stat_bin2d).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+## Even more plots
+
+Univariate plots – understanding one variable\!
+
+``` r
+weather_df %>%
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram(position = "dodge")
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_bin).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+``` r
+weather_df %>%
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram() + 
+  facet_grid(~name)
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_bin).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+Density plot
+
+``` r
+weather_df %>%
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_density(alpha = .3) 
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_density).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+``` r
+weather_df %>%
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_boxplot).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+
+Violin plots. These could be useful when you have a lot of groups and
+you want to check for bimodality etc. but otherwise not that great.
+
+``` r
+weather_df %>%
+  ggplot(aes(x = name, y = tmax)) +
+  geom_violin()
+```
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_ydensity).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+Ridge plots - useful when you have lots of groups
+
+``` r
+weather_df %>%
+  ggplot(aes(x = tmax, y = name)) +
+  geom_density_ridges()
+```
+
+    ## Picking joint bandwidth of 1.84
+
+    ## Warning: Removed 3 rows containing non-finite values (stat_density_ridges).
+
+![](Data_viz_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->

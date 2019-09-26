@@ -92,3 +92,59 @@ weather_df %>%
   geom_smooth(method = "lm", se = FALSE)
 ```
 
+2D density
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_bin2d() #instal hexbin to use geom_hex()
+```
+
+## Even more plots
+
+Univariate plots -- understanding one variable!
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram(position = "dodge")
+```
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram() + 
+  facet_grid(~name)
+```
+
+Density plot
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_density(alpha = .3) 
+```
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = name, y = tmax)) +
+  geom_boxplot()
+```
+
+Violin plots. These could be useful when you have a lot of groups and you want to check for bimodality etc. but otherwise not that great.
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = name, y = tmax)) +
+  geom_violin()
+```
+
+Ridge plots - useful when you have lots of groups
+
+```{r}
+weather_df %>%
+  ggplot(aes(x = tmax, y = name)) +
+  geom_density_ridges()
+```
+
+
