@@ -147,4 +147,29 @@ weather_df %>%
   geom_density_ridges()
 ```
 
+## Saving a plot
 
+Note: you can save by clicking export on the right plot panel, but this is not reproducable so don't do it. Write it in your code!
+
+```{r}
+ggp_ridge_temp = 
+  weather_df %>%
+  ggplot(aes(x = tmax, y = name)) +
+  geom_density_ridges()
+
+ggsave("ggplot_temp_ridge.pdf", ggp_ridge_temp)
+```
+
+```{r, fig.width=6}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .4) + 
+  geom_smooth(se = FALSE)
+```
+
+```{r, fig.width=12}
+weather_df %>%
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .4) + 
+  geom_smooth(se = FALSE)
+```
