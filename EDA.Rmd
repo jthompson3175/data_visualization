@@ -1,0 +1,198 @@
+---
+title: "Untitled"
+author: "Julia Thompson"
+date: "10/3/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(viridis)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+## Create the weather data
+
+```{r load_data, cache = TRUE}
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2017-01-01",
+                      date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10,
+    month = lubridate::floor_date(date, unit = "month")) %>%
+  select(name, id, date, month, everything())
+```
+
+## `group_by` and counting
+
+```{r}
+weather_df %>% 
+  group_by(name, month) #now there are 36 groups sitting on top of your data set
+```
+
+```{r}
+weather_df %>% 
+  group_by(name, month) %>% 
+  summarize(n_obs = n()) #this results in a new DF
+```
+
+```{r}
+weather_df %>% 
+  group_by(month) %>% 
+  summarize(
+    n_obs = n(),
+    n_unique = n_distinct(date))
+```
+
+If you're just going to count things, you can bypass group_by and summarize and do this:
+
+```{r}
+weather_df %>% 
+  count(name, month) 
+```
+
+Don't do this ever! It does not result in a dataframe and is dumb.
+
+```{r}
+weather_df %>%
+  pull(month) %>% 
+  table()
+```
+
+Let's makea nice table
+
+```{r}
+weather_df %>% 
+  count(name) %>% 
+  knitr::kable()
+```
+
+## 2 by 2 tables
+
+Warning! Jeff doesn't like 2x2 tables
+
+```{r}
+weather_df %>% 
+  filter(name != "Waikiki_HA") %>% 
+  mutate(
+    cold = case_when(
+      tmax <  5  ~ "cold",
+      tmax >= 5  ~ "not cold",
+      TRUE       ~ ""
+    )
+  ) %>% 
+  #group_by(name, cold) %>% 
+  #count()
+  janitor::tabyl(name, cold)
+```
+
+## General Summaries
+
+```{r}
+weather_df %>% 
+  group_by(name) %>% 
+  summarize(
+    n=n(),
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    sd_tmax = sd(tmax, na.rm = TRUE),
+    median_prcp = median(prcp, na.rm = TRUE)
+  )
+```
+
+Note: can add _na.rm=TRUE_ to tell R to ignore NA values. Just be careful about this because it's not generally good to ignore NAs by default, but it's fine if you understand why and what you're ignoring etc.
+
+```{r}
+weather_df %>% 
+  group_by(name, month) %>% 
+  summarize(
+    n=n(),
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    sd_tmax = sd(tmax, na.rm = TRUE),
+    median_prcp = median(prcp, na.rm = TRUE)
+  ) %>% 
+  ggplot(aes(x = month, y = mean_tmax, color = name)) +
+  geom_point() + geom_line()
+```
+
+Sometimes you need to go from long to wide for reader friendly purposes:
+
+```{r}
+weather_df %>% 
+  group_by(name, month) %>% 
+  summarize(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+  ) %>% 
+  pivot_wider(
+    names_from = name,
+    values_from = mean_tmax
+  ) %>% 
+  knitr::kable(digits = 1)
+```
+
+## Grouped mutates
+
+Grouping and forgetting about it can get you into trouble!! You can just ungroup.
+
+```{r}
+weather_df %>% 
+  group_by(name) %>% 
+  ungroup()
+```
+
+This will mutate in a group specific fashion, not over the entire dataset
+
+```{r}
+weather_df %>% 
+  group_by(name) %>% 
+  mutate(
+    mean_tmax = mean(tmax, na.rm = TRUE),
+    centered_tmax = tmax - mean_tmax
+  ) %>% 
+  ggplot(aes(x = date, y = centered_tmax, color = name)) +
+  geom_point()
+```
+
+Window functions in goruped mutates:
+
+Looking at ?min_rank can be helpful.
+
+```{r}
+weather_df %>% 
+  group_by(name, month) %>% 
+  mutate(
+    tmax_rank = min_rank(tmax)
+  ) %>% 
+  filter(tmax_rank == 1)
+```
+
+How much did the tmax variable change from one day to the next?
+
+```{r}
+weather_df %>% 
+  group_by(name) %>% 
+  mutate(
+    lagged_tmax = lag(tmax), #lag copies a column and shifts it down by one essentially
+    one_day_tmax_change = tmax - lagged_tmax
+  ) %>% 
+  summarize(sd_daily_change = sd(one_day_tmax_change, na.rm=TRUE))
+```
+
